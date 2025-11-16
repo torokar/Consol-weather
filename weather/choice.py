@@ -2,6 +2,7 @@ import questionary
 
 def choice_users():
     city = input('Введите город: ')
+    city = city.title()
     license_type = questionary.select(
         "Выберите функцию",
         choices=[

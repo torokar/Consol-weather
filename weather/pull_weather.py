@@ -1,39 +1,46 @@
 import re
-import pprint
 
-def animation(text):
-    """Вытягивания данных регулярными выражениями"""
-    pattern = r'\s{2}(\b\w+(?:\s\w+)*\b)'
+def pull_data_weather(text):
+    """Вытягивания данных регулярными выражениями с проверками"""
+    dict_data_weather = {}
+
+    pattern = r'\b(clear|overcast|cloudy|sunny|rain|snow|partly cloudy)\b'
+    match = re.search(pattern, text, re.IGNORECASE)
+    if match:
+        weather_condition = match.group(1).lower()
+
+        weather_map = {
+            'clear': 'Clear',
+            'sunny': 'Sunny',
+            'overcast': 'Overcast',
+            'cloudy': 'Overcast',  # cloudy → Overcast
+            'partly cloudy': 'Partly Cloudy',
+            'rain': 'Rain',
+            'snow': 'Moderate snow'
+        }
+
+        dict_data_weather['sky'] = weather_map.get(weather_condition, 'Clear')
+    else:
+        dict_data_weather['sky'] = "Clear"  # значение по умолчанию
+
+    #Температура
+    pattern = r'[-+]?\d+\(\d+\)\s*°C'
     match = re.search(pattern, text)
-    text_none_space = match.group().replace('  ', '')
-    dict_params  = {'sky': text_none_space}
+    dict_data_weather['degrees'] = match.group() if match else "Unknown"
 
-    pattern = r'[+-]\d+\(\d+\)\s°C'
+    #Ветер
+    pattern = r'[↖↑↗→↘↓↙←]\s*\d+\s*km/h'
     match = re.search(pattern, text)
-    dict_params['degrees'] = match.group()
+    dict_data_weather['wind_speed'] = match.group() if match else "Unknown"
 
-    pattern = r'[↖↑↗→↘↓↙←]\s\d+\skm/h'
+    #Осадки
+    pattern = r'\d+\.\d\s*mm'
     match = re.search(pattern, text)
-    dict_params['wind_speed'] = match.group()
+    dict_data_weather['precipitation'] = match.group() if match else "Unknown"
 
-    pattern = r'\d+.\d\smm'
-    match = re.search(pattern,text)
-    dict_params['precipitation'] = match.group()
-
-    pattern = r'\s{2}\d+\skm\b'
+    #Видимость
+    pattern = r'\b\d+\s*km\b'
     match = re.search(pattern, text)
-    text_none_space = match.group().replace('  ', '')
-    dict_params['visibility'] = text_none_space
+    dict_data_weather['visibility'] = match.group() if match else "Unknown"
 
-    pprint.pprint(dict_params)
-
-if __name__ == "__main__":
-    animation("""Weather report: Ангарск
-
-                Overcast
-       .--.     +3(2) °C       
-    .-(    ).   ← 6 km/h       
-   (___.__)__)  10 km          
-                0.0 mm
-2025-11-13
-    """)
+    return dict_data_weather
